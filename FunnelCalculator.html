@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funnel Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .light {
+                --bg-primary: #ffffff;
+                --text-primary: #1f2937;
+            }
+            .dark {
+                --bg-primary: #1f2937;
+                --text-primary: #ffffff;
+            }
+        }
+
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-200">
+    <!-- Navigation Bar with Theme Switcher and Home Logo -->
+    <nav class="fixed top-0 right-0 left-0 p-3 bg-[var(--bg-primary)] shadow-md z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <!-- Home Logo -->
+            <a href="index.html" class="flex items-center">
+                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                <span class="ml-2 font-bold">Home</span>
+            </a>
+            
+            <!-- Theme Switcher -->
+            <button id="theme-toggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
+                <svg id="sun" class="w-6 h-6 hidden dark:block text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+                </svg>
+                <svg id="moon" class="w-6 h-6 block dark:hidden text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-20">
+        <h1 class="text-3xl font-bold text-center mb-8">Sales Funnel Calculator</h1>
+        <p class="text-center mb-8 max-w-2xl mx-auto text-gray-600 dark:text-gray-300">
+            Calculate your sales funnel metrics by entering your monthly visitors, conversion rates, and average sale value. This tool will help you understand your sales pipeline and revenue potential.
+        </p>
+        
+        <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div class="space-y-6">
+                <!-- Visitors -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Monthly Visitors</label>
+                    <div class="relative">
+                        <input type="number" id="visitors" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" value="1000">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
+                            <span>visitors</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">The number of unique visitors to your website per month</p>
+                </div>
+
+                <!-- Lead Conversion Rate -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Lead Conversion Rate</label>
+                    <div class="relative">
+                        <input type="number" id="leadRate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" value="20">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
+                            <span>%</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Percentage of visitors who become leads</p>
+                </div>
+
+                <!-- Sales Conversion Rate -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Sales Conversion Rate</label>
+                    <div class="relative">
+                        <input type="number" id="salesRate" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" value="20">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500">
+                            <span>%</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Percentage of leads who become customers</p>
+                </div>
+
+                <!-- Average Sale Value -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Average Sale Value</label>
+                    <div class="relative">
+                        <input type="number" id="saleValue" class="w-full p-2 pl-6 border rounded dark:bg-gray-700 dark:border-gray-600" value="100">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-gray-500">
+                            <span>$</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Average revenue per customer</p>
+                </div>
+
+                <!-- Results -->
+                <div id="results" class="mt-8 space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-medium">Monthly Leads:</span>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Total leads generated per month</p>
+                        </div>
+                        <span id="monthlyLeads" class="text-blue-600 dark:text-blue-400">200</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-medium">Monthly Sales:</span>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Total sales closed per month</p>
+                        </div>
+                        <span id="monthlySales" class="text-blue-600 dark:text-blue-400">40</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-medium">Monthly Revenue:</span>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Total revenue generated per month</p>
+                        </div>
+                        <span id="monthlyRevenue" class="text-blue-600 dark:text-blue-400">$4,000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+
+        // Load saved values from localStorage
+        function loadSavedValues() {
+            const inputs = ['visitors', 'leadRate', 'salesRate', 'saleValue'];
+            inputs.forEach(id => {
+                const savedValue = localStorage.getItem(`funnel_${id}`);
+                if (savedValue !== null) {
+                    document.getElementById(id).value = savedValue;
+                }
+            });
+        }
+
+        // Save values to localStorage
+        function saveValues() {
+            const inputs = ['visitors', 'leadRate', 'salesRate', 'saleValue'];
+            inputs.forEach(id => {
+                const value = document.getElementById(id).value;
+                localStorage.setItem(`funnel_${id}`, value);
+            });
+        }
+
+        // Funnel Calculator functionality
+        function calculateFunnel() {
+            const visitors = parseFloat(document.getElementById('visitors').value) || 0;
+            const leadRate = parseFloat(document.getElementById('leadRate').value) / 100 || 0;
+            const salesRate = parseFloat(document.getElementById('salesRate').value) / 100 || 0;
+            const saleValue = parseFloat(document.getElementById('saleValue').value) || 0;
+
+            const monthlyLeads = Math.round(visitors * leadRate);
+            const monthlySales = Math.round(monthlyLeads * salesRate);
+            const monthlyRevenue = monthlySales * saleValue;
+
+            document.getElementById('monthlyLeads').textContent = monthlyLeads.toLocaleString();
+            document.getElementById('monthlySales').textContent = monthlySales.toLocaleString();
+            document.getElementById('monthlyRevenue').textContent = '$' + monthlyRevenue.toLocaleString();
+
+            // Save values after calculation
+            saveValues();
+        }
+
+        // Load saved values on page load
+        loadSavedValues();
+
+        // Calculate initial values
+        calculateFunnel();
+
+        // Add input event listeners to recalculate on any change
+        ['visitors', 'leadRate', 'salesRate', 'saleValue'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateFunnel);
+        });
+    </script>
+</body>
+</html>

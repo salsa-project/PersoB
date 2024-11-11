@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <!-- Prompt used to create this project:
+    Create a web application for organizing and managing AI prompts with the following features:
+    1. Add, edit, and delete prompts with titles, content, and tags
+    2. Organize prompts into categories
+    3. Search and filter prompts by text and category
+    4. Responsive design that works on mobile and desktop
+    5. Local storage to persist data
+    6. Clean, modern UI using Tailwind CSS
+    7. Modal for adding/editing prompts
+    8. Category management system
+    The app should be built as a single HTML file with embedded JavaScript and styling.
+    Make it user-friendly and intuitive to use.
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompts Organizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 p-4 md:p-8 transition-colors duration-200">
+    <!-- Navigation Bar with Theme Switcher and Home Logo -->
+    <nav class="fixed top-0 right-0 left-0 p-3 bg-white dark:bg-gray-800 shadow-md z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <!-- Home Logo -->
+            <a href="index.html" class="flex items-center">
+                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                <span class="ml-2 font-bold text-gray-900 dark:text-white">Home</span>
+            </a>
+            
+            <!-- Theme Switcher -->
+            <button id="theme-toggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
+                <svg id="sun" class="w-6 h-6 hidden dark:block text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+                </svg>
+                <svg id="moon" class="w-6 h-6 block dark:hidden text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto pt-20">
+        <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-white">Prompts Organizer</h1>
+        
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Left Sidebar -->
+            <div class="w-full md:w-64 flex-shrink-0">
+                <!-- Category Management -->
+                <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-md mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Manage Categories</h2>
+                    <div class="flex flex-col gap-2 mb-4">
+                        <input type="text" id="categoryName" placeholder="New Category" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <button onclick="addCategory()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Category</button>
+                    </div>
+                    <div id="categoriesList" class="flex flex-col gap-2"></div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <!-- Search and Filter -->
+                <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-lg shadow-md mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 mb-4">
+                        <input type="text" id="searchPrompt" placeholder="Search prompts..." class="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <select id="filterCategory" class="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="">All Categories</option>
+                        </select>
+                        <button onclick="clearPrompts()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Clear All</button>
+                    </div>
+                </div>
+
+                <!-- Prompts List -->
+                <div id="promptsList" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <button onclick="showModal()" class="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 flex items-center justify-center text-2xl">
+        <span>+</span>
+    </button>
+
+    <!-- Modal for Adding Prompt -->
+    <div id="addPromptModal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-xl mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Add New Prompt</h2>
+                <button onclick="hideModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100">×</button>
+            </div>
+            <input type="text" id="promptTitle" placeholder="Prompt Title" class="w-full p-2 mb-3 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <textarea id="promptContent" placeholder="Prompt Content" class="w-full p-2 mb-3 border rounded h-24 dark:bg-gray-700 dark:border-gray-600 dark:text-white"></textarea>
+            <input type="text" id="promptTags" placeholder="Tags (comma-separated)" class="w-full p-2 mb-3 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <select id="promptCategory" class="w-full p-2 mb-3 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <option value="">Select Category</option>
+            </select>
+            <div class="flex justify-end gap-2">
+                <button onclick="hideModal()" class="px-4 py-2 border rounded dark:border-gray-600 dark:text-white">Cancel</button>
+                <button onclick="addPrompt()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Prompt</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load data from localStorage on page load
+        let prompts = JSON.parse(localStorage.getItem('prompts')) || [];
+        let categories = JSON.parse(localStorage.getItem('categories')) || [];
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        
+        // Check for saved theme preference or default to system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        // Update theme toggle button
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+
+        function showModal() {
+            document.getElementById('addPromptModal').classList.add('show');
+        }
+
+        function hideModal() {
+            document.getElementById('addPromptModal').classList.remove('show');
+            clearForm();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('prompts', JSON.stringify(prompts));
+            localStorage.setItem('categories', JSON.stringify(categories));
+        }
+
+        function addPrompt() {
+            const title = document.getElementById('promptTitle').value;
+            const content = document.getElementById('promptContent').value;
+            const tags = document.getElementById('promptTags').value.split(',').map(tag => tag.trim());
+            const category = document.getElementById('promptCategory').value;
+
+            if (!title || !content || !category) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            prompts.push({
+                id: Date.now(),
+                title,
+                content,
+                tags,
+                category
+            });
+
+            saveToLocalStorage();
+            renderPrompts();
+            clearForm();
+            hideModal();
+        }
+
+        function deletePrompt(id) {
+            prompts = prompts.filter(prompt => prompt.id !== id);
+            saveToLocalStorage();
+            renderPrompts();
+        }
+
+        function editPrompt(id) {
+            const prompt = prompts.find(p => p.id === id);
+            document.getElementById('promptTitle').value = prompt.title;
+            document.getElementById('promptContent').value = prompt.content;
+            document.getElementById('promptTags').value = prompt.tags.join(', ');
+            document.getElementById('promptCategory').value = prompt.category;
+            deletePrompt(id);
+            showModal();
+        }
+
+        function addCategory() {
+            const category = document.getElementById('categoryName').value;
+            if (!category) return;
+            if (!categories.includes(category)) {
+                categories.push(category);
+                saveToLocalStorage();
+                renderCategories();
+                updateCategorySelects();
+            }
+            document.getElementById('categoryName').value = '';
+        }
+
+        function deleteCategory(category) {
+            categories = categories.filter(c => c !== category);
+            prompts = prompts.filter(p => p.category !== category);
+            saveToLocalStorage();
+            renderCategories();
+            updateCategorySelects();
+            renderPrompts();
+        }
+
+        function clearPrompts() {
+            const category = document.getElementById('filterCategory').value;
+            if (category) {
+                prompts = prompts.filter(p => p.category !== category);
+            } else {
+                prompts = [];
+            }
+            saveToLocalStorage();
+            renderPrompts();
+        }
+
+        function renderPrompts() {
+            const searchTerm = document.getElementById('searchPrompt').value.toLowerCase();
+            const filterCategory = document.getElementById('filterCategory').value;
+            
+            let filteredPrompts = prompts;
+            if (filterCategory) {
+                filteredPrompts = filteredPrompts.filter(p => p.category === filterCategory);
+            }
+            if (searchTerm) {
+                filteredPrompts = filteredPrompts.filter(p => 
+                    p.title.toLowerCase().includes(searchTerm) || 
+                    p.content.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            const promptsList = document.getElementById('promptsList');
+            promptsList.innerHTML = filteredPrompts.map(prompt => `
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">${prompt.title}</h3>
+                        <div>
+                            <button onclick="editPrompt(${prompt.id})" class="text-blue-500 hover:text-blue-700 mr-2">Edit</button>
+                            <button onclick="deletePrompt(${prompt.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                        </div>
+                    </div>
+                    <p class="mb-2 text-gray-700 dark:text-gray-300">${prompt.content}</p>
+                    <div class="flex flex-wrap gap-2 mb-2">
+                        ${prompt.tags.map(tag => `
+                            <span class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full text-sm text-gray-700 dark:text-gray-300">#${tag}</span>
+                        `).join('')}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Category: ${prompt.category}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderCategories() {
+            const categoriesList = document.getElementById('categoriesList');
+            categoriesList.innerHTML = categories.map(category => `
+                <div class="bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded-lg flex items-center justify-between">
+                    <span class="text-gray-800 dark:text-gray-200">${category}</span>
+                    <button onclick="deleteCategory('${category}')" class="text-red-500 hover:text-red-700">×</button>
+                </div>
+            `).join('');
+        }
+
+        function updateCategorySelects() {
+            const selects = ['promptCategory', 'filterCategory'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = `
+                    <option value="">${selectId === 'filterCategory' ? 'All Categories' : 'Select Category'}</option>
+                    ${categories.map(category => `
+                        <option value="${category}">${category}</option>
+                    `).join('')}
+                `;
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('promptTitle').value = '';
+            document.getElementById('promptContent').value = '';
+            document.getElementById('promptTags').value = '';
+            document.getElementById('promptCategory').value = '';
+        }
+
+        // Initialize
+        document.getElementById('searchPrompt').addEventListener('input', renderPrompts);
+        document.getElementById('filterCategory').addEventListener('change', renderPrompts);
+        renderCategories();
+        updateCategorySelects();
+        renderPrompts();
+    </script>
+</body>
+</html>
